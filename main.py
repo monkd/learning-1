@@ -5,8 +5,12 @@ from array import array
 keycnt = 0
 Switch_num = 0
 Casetotal = 0
+IFtotal = 0
+IFELtotal = 0
 Flag=0
 Case_num = array('i')
+IF_EL = 0
+IF_ELIF_IF = 0
 
 
 KEYword = (
@@ -26,9 +30,11 @@ def simplity(path):
     textre = re.split(r"\W", textre)                #转化为列表
     return textre
 
+
+
 def cntfuc(textre):
-    global keycnt,Switch_num,Casetotal,Flag
-    global Case_num
+    global keycnt,Switch_num,Casetotal,IFtotal,IFELtotal,Flag,IF_EL,IF_ELIF_IF
+    global Case_num,IFEL
     text_iter = iter(range(len(textre)))
     for i in text_iter:
         temp = textre[i]
@@ -37,6 +43,22 @@ def cntfuc(textre):
 
             if temp == 'switch':            # 用于GRADE 2
                 Switch_num+=1
+
+            if temp == 'if' and textre[i-1] != 'else':
+                IFtotal += 1
+
+            if temp == 'else' and textre[i+1] != 'if':
+                if IFELtotal > 0:
+                    IF_ELIF_IF +=1
+                    IFELtotal -=1
+                else:
+                    IF_EL += 1
+                IFtotal -= 1
+
+            if temp == 'else' and textre[i+1] == 'if' and IFtotal > IFELtotal:
+                IFELtotal += 1
+
+
 
     text_iter = iter(range(len(textre)))
     for j in text_iter:
@@ -54,6 +76,9 @@ def cntfuc(textre):
     print("total num: ",keycnt)
     print("switch num: ",Switch_num)
     print("case num:" ,*Case_num)
+    print("if-else num:",IF_EL)
+
+
 
 if __name__ == "__main__":
     PATH = sys.argv[1]
