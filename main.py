@@ -2,87 +2,108 @@ import sys
 import re
 from array import array
 
-keycnt = 0
-Switch_num = 0
-Casetotal = 0
-IFtotal = 0
-Flag=0
-Case_num = array('i')
-IFarray = array('i')
+KeyCnt = 0
+Switch_Num = 0
+CaseTotal = 0
+IfTotal = 0
+Flag = 0
+Case_Num = array('i')
+IfArray = array('i')
 IF_EL = 0
 IF_ELIF_IF = 0
 
 
-KEYword = (
-    "unsigned", "void", "volatile", "while", "struct", "switch", "typedef", "union",
-    "short", "signed", "sizeof", "static", "const", "continue", "default", "do",
-    "int", "long", "register", "return", "double", "else", "enum", "extern",
-    "auto", "break", "case", "char", "float", "for", "goto", "if"
+KeyWord = (
+    "auto", "break", "case", "char",
+    "const", "continue", "default", "do",
+    "double", "else", "enum", "extern",
+    "float", "for", "goto", "if",
+    "int", "long", "register", "return",
+    "short", "signed", "sizeof", "static",
+    "struct", "switch", "typeof", "union",
+    "unsigned", "void", "volatile", "while"
 )
 
 
 def simplity(path):
-    text = open(path, mode='r').read()
-    textre = re.sub(r"[0123456789]+"," ", text)
-    textre = re.sub(r"[\n]+", "  ", textre)         #将代码中的换行都变成空格
-    textre = re.sub(r"['+*/=<>():']+", "  ", textre)         #将代码中的运算符都变成空格
-    textre = re.sub(r"[ \f\r\t\v]+", " ", textre)   #将代码中的多余空格删除
-    textre = re.split(r"\W", textre)                #转化为列表
-    return textre
+    Text = open(path, mode='r').read()
+    Textre = re.sub(r"\/\*([^\*^\/]*|[\**\/*]*|[^\**\/]*)*\*\/", "", Text)  
+    Textre = re.sub(r"\/\/[^\n]*", "", Textre)  
+    Textre = re.sub(r"\"(.*)\"", "", Textre)                #以上三行代码用于删除不应该被统计但是会影响结果的部分
+    Textre = re.sub(r"[0123456789]+"," ", Textre)           #将代码中数字都变成空格
+    Textre = re.sub(r"[\n]+", "  ", Textre)                 #将代码中的换行都变成空格
+    Textre = re.sub(r"['+*/=<>():']+", "  ", Textre)        #将代码中的运算符都变成空格
+    Textre = re.sub(r"[ \f\r\t\v]+", " ", Textre)           #将代码中的多余空格删除
+    Textre = re.split(r"\W", Textre)                        #转化为列表
+    return Textre
 
 
 
-def cntfuc(textre):
-    global keycnt,Switch_num,Casetotal,IFtotal,IFELtotal,Flag,IF_EL,IF_ELIF_IF
-    global Case_num,IFEL
-    text_iter = iter(range(len(textre)))
+def Slove(Textre,GRADE):
+    global KeyCnt,Switch_Num,CaseTotal
+    global IfTotal,Flag
+    global IF_EL,IF_ELIF_IF
+    global Case_Num,IF_EL
+    text_iter = iter(range(len(Textre)))
     for i in text_iter:
-        temp = textre[i]
-        if temp != ' 'and temp in KEYword:
-            keycnt +=1
+        Temp = Textre[i]
+        if Temp != ' 'and Temp in KeyWord:
+            KeyCnt +=1
 
-            if temp == 'switch':            # 用于GRADE 2
-                Switch_num+=1
+            if Temp == 'switch':            # 用于GRADE 2 中统计 switch 出现的次数
+                Switch_Num+=1
 
-            if temp == 'if' and textre[i-1] != 'else':
-                IFarray.append(1)
-                IFtotal += 1
+            if Temp == 'if' and Textre[i-1] != 'else':
+                IfArray.append(1)
+                IfTotal += 1
 
-            if temp == 'else' and textre[i+1] == 'if':
-                if IFarray[IFtotal-1] == 1:
-                    IFarray.pop()
-                    IFarray.append(3)
-            if temp == 'else' and textre[i + 1] != 'if':           #用一个类似栈的实现来完成GRADE3 GRADE4
-                if IFarray[IFtotal-1] == 1:
+            if Temp == 'else' and Textre[i+1] == 'if':
+                if IfArray[IfTotal-1] == 1:
+                    IfArray.pop()
+                    IfArray.append(3)
+
+            if Temp == 'else' and Textre[i + 1] != 'if':           #用一个类似栈的实现来完成 GRADE3 和 GRADE4
+                if IfArray[IfTotal-1] == 1:
                     IF_EL+=1
-                    IFtotal -= 1
-                    IFarray.pop()
+                    IfTotal -= 1
+                    IfArray.pop()
                 else:
                     IF_ELIF_IF += 1
-                    IFtotal -= 1
-                    IFarray.pop()
+                    IfTotal -= 1
+                    IfArray.pop()
 
-    text_iter = iter(range(len(textre)))
-    for j in text_iter:
-        temp = textre[j]
+    text_iter = iter(range(len(Textre)))
+    for j in text_iter:                                            #用于统计各个switch循环中 case 出现的次数
+        temp = Textre[j]
         if temp =='case':
-            Casetotal += 1
+            CaseTotal += 1
+
         elif temp == 'switch' :
             if Flag == 0:
                 Flag +=1
-                continue        #第一个switch前不统计
-            Case_num.append(Casetotal)
-            Casetotal = 0;
-    Case_num.append(Casetotal)   #将最后一个switch的case个数存入数组
+                continue                                            #第一个switch前不统计
+            Case_Num.append(CaseTotal)
+            CaseTotal = 0;
 
-    print("total num: ",keycnt)
-    print("switch num: ",Switch_num)
-    print("case num:" ,*Case_num)
-    print("if-else num:",IF_EL)
-    print("if-elseif-else num:",IF_ELIF_IF)
+    Case_Num.append(CaseTotal)                                      #将最后一个switch的case个数存入数组
+
+    if GRADE >= 1:
+        print("total num: ", KeyCnt)
+
+    if GRADE >= 2:
+        print("switch num: ", Switch_Num)
+        print("case num:" , *Case_Num)
+
+    if GRADE >= 3:
+        print("if-else num:", IF_EL)
+
+    if GRADE >= 4:
+        print("if-elseif-else num:", IF_ELIF_IF)                    #分 4 个 GRADE 来输出
 
 
 if __name__ == "__main__":
     PATH = sys.argv[1]
     FILE = simplity(PATH)
-    cntfuc(FILE)
+    GRADE = sys.argv[2]
+    Grade = int(GRADE)
+    Slove(FILE,Grade)
