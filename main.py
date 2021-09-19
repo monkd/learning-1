@@ -6,9 +6,9 @@ keycnt = 0
 Switch_num = 0
 Casetotal = 0
 IFtotal = 0
-IFELtotal = 0
 Flag=0
 Case_num = array('i')
+IFarray = array('i')
 IF_EL = 0
 IF_ELIF_IF = 0
 
@@ -45,20 +45,22 @@ def cntfuc(textre):
                 Switch_num+=1
 
             if temp == 'if' and textre[i-1] != 'else':
+                IFarray.append(1)
                 IFtotal += 1
 
-            if temp == 'else' and textre[i+1] != 'if':
-                if IFELtotal > 0:
-                    IF_ELIF_IF +=1
-                    IFELtotal -=1
+            if temp == 'else' and textre[i+1] == 'if':
+                if IFarray[IFtotal-1] == 1:
+                    IFarray.pop()
+                    IFarray.append(3)
+            if temp == 'else' and textre[i + 1] != 'if':           #用一个类似栈的实现来完成GRADE3 GRADE4
+                if IFarray[IFtotal-1] == 1:
+                    IF_EL+=1
+                    IFtotal -= 1
+                    IFarray.pop()
                 else:
-                    IF_EL += 1
-                IFtotal -= 1
-
-            if temp == 'else' and textre[i+1] == 'if' and IFtotal > IFELtotal:
-                IFELtotal += 1
-
-
+                    IF_ELIF_IF += 1
+                    IFtotal -= 1
+                    IFarray.pop()
 
     text_iter = iter(range(len(textre)))
     for j in text_iter:
@@ -77,7 +79,7 @@ def cntfuc(textre):
     print("switch num: ",Switch_num)
     print("case num:" ,*Case_num)
     print("if-else num:",IF_EL)
-
+    print("if-elseif-else num:",IF_ELIF_IF)
 
 
 if __name__ == "__main__":
