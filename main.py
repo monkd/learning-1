@@ -27,8 +27,8 @@ KeyWord = (
 
 def simplity(path):
     Text = open(path, mode='r').read()
-    Textre = re.sub(r"\/\*([^\*^\/]*|[\**\/*]*|[^\**\/]*)*\*\/", "", Text)  
-    Textre = re.sub(r"\/\/[^\n]*", "", Textre)  
+    Textre = re.sub(r"\/\*([^\*^\/]*|[\**\/*]*|[^\**\/]*)*\*\/", "", Text)
+    Textre = re.sub(r"\/\/[^\n]*", "", Textre)
     Textre = re.sub(r"\"(.*)\"", "", Textre)                #以上三行代码用于删除不应该被统计但是会影响结果的部分
     Textre = re.sub(r"[0123456789]+"," ", Textre)           #将代码中数字都变成空格
     Textre = re.sub(r"[\n]+", "  ", Textre)                 #将代码中的换行都变成空格
@@ -92,7 +92,10 @@ def Slove(Textre,GRADE):
 
     if GRADE >= 2:
         print("switch num: ", Switch_Num)
-        print("case num:" , *Case_Num)
+        if Switch_Num > 0:
+            print("case num:" , *Case_Num)
+        else:
+            print("case num: 0")
 
     if GRADE >= 3:
         print("if-else num:", IF_EL)
@@ -103,7 +106,11 @@ def Slove(Textre,GRADE):
 
 if __name__ == "__main__":
     PATH = sys.argv[1]
-    FILE = simplity(PATH)
     GRADE = sys.argv[2]
+    FILE = simplity(PATH)
     Grade = int(GRADE)
+    while Grade > 4 or Grade < 1:
+        print("您输入地等级有误，请重新输入")
+        GRADE = input()
+        Grade = int(GRADE)
     Slove(FILE,Grade)
